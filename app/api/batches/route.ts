@@ -9,6 +9,7 @@ import { generateImageSet } from "@/lib/ai/image-generator";
 import { detectSimilarity } from "@/lib/duplicate-detection/similarity";
 import { buildBatchIdempotencyKey } from "@/lib/scheduling/publishing";
 import { nanoid } from "nanoid";
+import { sendApprovalEmail } from "@/lib/email/send-approval-email";
 
 const CATEGORY_VALUES = Object.values(Category) as [Category, ...Category[]];
 
@@ -113,6 +114,12 @@ export async function POST(request: Request) {
       }
 
       await prisma.contentBatch.update({ where: { id: batch.id }, data: { status: ContentStatus.PENDING_REVIEW } });
+
+      try {
+        await sendApprovalEmail(batch.id);
+      } catch (emailError) {
+        console.error("Manual batch generated, but approval email failed:", emailError);
+      }
 
       await recordAudit({
         userId: session.user.id,

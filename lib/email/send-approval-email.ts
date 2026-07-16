@@ -22,7 +22,7 @@ export async function sendApprovalEmail(batchId: string): Promise<void> {
 
   await sendEmail({
     to: recipients,
-    subject: `Liceo Social: 3 new candidates ready for review (${batch.candidates.map((c) => c.category).join(", ")})`,
+    subject: `Social Poster: 3 new candidates ready for review (${batch.candidates.map((c) => c.category).join(", ")})`,
     react: ApprovalEmail({
       batchId,
       generatedDate: batch.generationDate.toISOString().slice(0, 10),
