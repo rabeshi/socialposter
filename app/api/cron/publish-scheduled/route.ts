@@ -88,7 +88,7 @@ export async function GET(request: Request) {
         const xPub = allPublications.find((p) => p.platform === Platform.X);
         await sendEmail({
           to: recipients,
-          subject: `Liceo Social: publication ${combinedStatus === "PARTIALLY_PUBLISHED" ? "partially completed" : "completed"}`,
+          subject: `Social Poster: publication ${combinedStatus === "PARTIALLY_PUBLISHED" ? "partially completed" : "completed"}`,
           react: PublicationResultEmail({
             hook: publication.candidate.hook,
             linkedinResult: linkedinPub ? { status: linkedinPub.status, url: linkedinPub.platformUrl ?? undefined } : undefined,

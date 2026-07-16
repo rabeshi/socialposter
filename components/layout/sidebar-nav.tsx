@@ -32,7 +32,10 @@ export function SidebarNav() {
 
   return (
     <nav className="flex flex-col gap-1 p-4">
-      <div className="mb-4 px-2 text-lg font-bold tracking-tight">Liceo Social</div>
+      <div className="mb-4 flex items-center gap-2 px-2 text-lg font-bold tracking-tight">
+        <img src="/social-poster-logo.png" alt="" className="h-9 w-9 rounded-lg" />
+        <span>Social Poster</span>
+      </div>
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
         return (

@@ -1,6 +1,6 @@
-# Liceo Social
+# Social Poster
 
-A content management and approval application for Liceo's LinkedIn and X presence: it generates post candidates on a two-day cycle, requires human review and a separate publish confirmation, and only then publishes to LinkedIn and/or X.
+A content management and approval application for LinkedIn and X: it generates post candidates on a two-day cycle, requires human review and a separate publish confirmation, and only then publishes to LinkedIn and/or X. The included seed data is configured for the Liceo brand and can be customized in Brand Settings.
 
 **Nothing is ever published automatically.** The two-day cron only generates candidates and sends an approval email — every publish action is a distinct, authenticated, human-initiated step.
 

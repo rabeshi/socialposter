@@ -40,7 +40,7 @@ export async function GET(request: Request) {
 
     await sendEmail({
       to: recipients,
-      subject: `Reminder: Liceo batch #${batch.id.slice(0, 8)} awaiting review`,
+      subject: `Social Poster reminder: batch #${batch.id.slice(0, 8)} awaiting review`,
       react: ReminderEmail({
         batchId: batch.id,
         hoursSinceGeneration: hoursSince,

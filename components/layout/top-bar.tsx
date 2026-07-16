@@ -6,7 +6,7 @@ export async function TopBar() {
 
   return (
     <header className="flex h-14 items-center justify-between border-b px-6">
-      <div className="text-sm text-muted-foreground">Liceo Social Media Content Management</div>
+      <div className="text-sm text-muted-foreground">Social Poster · Content Management</div>
       <div className="flex items-center gap-4">
         {session?.user && (
           <span className="text-sm">

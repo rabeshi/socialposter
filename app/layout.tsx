@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Liceo Social",
-  description: "Social media content management and approval for Liceo.",
+  title: "Social Poster",
+  description: "Generate, review, schedule, and publish social media content.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
