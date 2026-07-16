@@ -18,7 +18,11 @@ const CATEGORIES = Object.values(Category);
  */
 export function GenerateForm() {
   const router = useRouter();
-  const [selected, setSelected] = useState<Category[]>([]);
+  const [selected, setSelected] = useState<Category[]>([
+    Category.SAAS_DISCOVERY,
+    Category.SAAS_COST_OPTIMIZATION,
+    Category.SHADOW_IT,
+  ]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,8 +92,8 @@ export function GenerateForm() {
           <div>
             <Label className="text-xs">Platforms</Label>
             <select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-              <option>LinkedIn + X (default)</option>
-              <option>LinkedIn only</option>
+              <option>LinkedIn only (default)</option>
+              <option>LinkedIn + X</option>
               <option>X only</option>
             </select>
           </div>

@@ -16,8 +16,12 @@ const envSchema = z.object({
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
 
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().default("Liceo Social <social@liceo.io>"),
+  EMAIL_FROM: z.string().default("Social Poster <onboarding@resend.dev>"),
   APPROVAL_EMAILS: z.string().default(""),
+  SEND_REAL_EMAILS: z
+    .string()
+    .default("false")
+    .transform((v) => v === "true"),
 
   LINKEDIN_CLIENT_ID: z.string().optional(),
   LINKEDIN_CLIENT_SECRET: z.string().optional(),

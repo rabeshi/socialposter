@@ -13,14 +13,13 @@ export interface SendEmailResult {
 }
 
 /**
- * Sends transactional email via Resend. In simulation mode (or when
- * RESEND_API_KEY is absent) the email is rendered and logged instead of
- * sent, so the full approval workflow can be exercised locally.
+ * Sends transactional email via Resend. Publishing and AI generation can
+ * remain simulated while SEND_REAL_EMAILS independently enables inbox tests.
  */
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
   const env = getEnv();
 
-  if (env.SIMULATION_MODE || !env.RESEND_API_KEY) {
+  if (!env.SEND_REAL_EMAILS || !env.RESEND_API_KEY) {
     console.info(`[simulation] Would send email "${input.subject}" to: ${input.to.join(", ")}`);
     return { simulated: true, previewedTo: input.to };
   }
