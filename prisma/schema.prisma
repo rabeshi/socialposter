@@ -1,0 +1,313 @@
+// Liceo Social — Prisma schema
+// Datasource: Neon Postgres. DATABASE_URL is pooled (runtime), DIRECT_URL is
+// unpooled (migrations) per Neon + Prisma guidance.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  ADMIN
+  REVIEWER
+  VIEWER
+}
+
+enum Category {
+  SAAS_DISCOVERY
+  SAAS_COST_OPTIMIZATION
+  SAAS_SPRAWL
+  SHADOW_IT
+  SOFTWARE_USAGE_LICENSE_MANAGEMENT
+  AI_POWERED_SAAS_GOVERNANCE
+  SECURITY_RISK_COMPLIANCE
+  SOFTWARE_PROCUREMENT_VENDOR_MANAGEMENT
+  OPERATIONAL_EFFICIENCY_AUTOMATION
+  BUILDING_LICEO
+}
+
+enum GenerationSource {
+  SCHEDULED
+  MANUAL
+}
+
+enum Platform {
+  LINKEDIN
+  X
+}
+
+// Unified status enum shared by ContentBatch, PostCandidate and Publication.
+// Not every value is meaningful on every model; the API layer enforces which
+// transitions are legal for which model (see lib/scheduling/*).
+enum ContentStatus {
+  GENERATING
+  GENERATION_FAILED
+  PENDING_REVIEW
+  REVISION_REQUESTED
+  CANDIDATE_SELECTED
+  NOT_SELECTED
+  REJECTED
+  APPROVED
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  PARTIALLY_PUBLISHED
+  PUBLICATION_FAILED
+  READY_FOR_MANUAL_PUBLISHING
+  CANCELLED
+}
+
+enum ApprovalDecision {
+  APPROVED
+  REJECTED
+  REVISION_REQUESTED
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+model User {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  passwordHash   String?
+  role           UserRole  @default(REVIEWER)
+  emailVerified  DateTime?
+  image          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  createdVersions ContentVersion[]
+  approvals       Approval[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Settings (singleton rows)
+// ---------------------------------------------------------------------------
+
+model BrandProfile {
+  id                     String   @id @default(cuid())
+  companyName            String   @default("Liceo")
+  companyDescription     String
+  productDescription     String
+  brandVoice             String
+  approvedTerms          String[] @default([])
+  prohibitedTerms        String[] @default([])
+  logoUrl                String?
+  brandColors            String[] @default([])
+  website                String   @default("https://liceo.io")
+  standardHashtags       String[] @default(["#Liceo"])
+  hashtagMinCount        Int      @default(3)
+  hashtagMaxCount        Int      @default(5)
+  allowUrlsInLinkedIn    Boolean  @default(false)
+  approvalEmailRecipients String[] @default([])
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("brand_profiles")
+}
+
+model AutomationSettings {
+  id                       String    @id @default(cuid())
+  automationEnabled        Boolean   @default(false)
+  generationIntervalDays   Int       @default(2)
+  generationTimezone       String    @default("America/Los_Angeles")
+  preferredLocalGenerationTime String @default("09:00")
+  lastSuccessfulGenerationAt DateTime?
+  nextGenerationAt         DateTime?
+  skipNextGeneration       Boolean   @default(false)
+  reminderIntervalHours    Int       @default(24)
+  maxReminders             Int       @default(2)
+  remindersSentForCurrentBatch Int  @default(0)
+  defaultPlatforms         Platform[] @default([LINKEDIN, X])
+  defaultPublicationHour   Int       @default(9)
+  defaultPublicationMinute Int       @default(0)
+  publishingPaused         Boolean   @default(false)
+  manualPublishingFallback Boolean   @default(true)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  @@map("automation_settings")
+}
+
+// ---------------------------------------------------------------------------
+// Content
+// ---------------------------------------------------------------------------
+
+model ContentBatch {
+  id               String           @id @default(cuid())
+  generationSource GenerationSource @default(MANUAL)
+  generationDate   DateTime         @default(now())
+  status           ContentStatus    @default(GENERATING)
+  categories       Category[]
+  model            String           @default("simulation")
+  idempotencyKey   String           @unique
+  errorDetails     String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  candidates PostCandidate[]
+
+  @@index([status])
+  @@map("content_batches")
+}
+
+model PostCandidate {
+  id             String        @id @default(cuid())
+  batchId        String
+  batch          ContentBatch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  category       Category
+  contentAngle   String
+  hook           String
+  headline       String?
+
+  linkedinCopy   String
+  xCopy          String
+  hashtags       String[]      @default([])
+
+  imagePrompt    String
+  originalImageUrl        String?
+  linkedinLandscapeUrl    String?
+  linkedinSquareUrl       String?
+  xImageUrl               String?
+  thumbnailUrl            String?
+  altText                 String?
+
+  status         ContentStatus @default(PENDING_REVIEW)
+  qualityScore   Float?
+  similarityScore Float?
+  factualityNotes String?
+  riskNotes       String?
+
+  suggestedPublicationDate DateTime?
+  suggestedPublicationTime String?
+
+  reviewerConfirmed Boolean   @default(false)
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  versions     ContentVersion[]
+  approvals    Approval[]
+  publications Publication[]
+
+  @@index([batchId])
+  @@index([status])
+  @@map("post_candidates")
+}
+
+model ContentVersion {
+  id            String   @id @default(cuid())
+  candidateId   String
+  candidate     PostCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  version       Int
+  linkedinCopy  String
+  xCopy         String
+  imagePrompt   String?
+  imageUrls     Json?
+  changeReason  String?
+
+  createdById   String?
+  createdBy     User?    @relation(fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@unique([candidateId, version])
+  @@map("content_versions")
+}
+
+model Approval {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     PostCandidate    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  reviewerId    String
+  reviewer      User             @relation(fields: [reviewerId], references: [id])
+
+  decision      ApprovalDecision
+  comments      String?
+  approvedVersion Int?
+  createdAt     DateTime         @default(now())
+
+  @@map("approvals")
+}
+
+model Publication {
+  id             String        @id @default(cuid())
+  candidateId    String
+  candidate      PostCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  platform       Platform
+  status         ContentStatus @default(APPROVED)
+
+  scheduledTime  DateTime?
+  publicationTime DateTime?
+
+  platformPostId String?
+  platformUrl    String?
+
+  errorType      String?
+  errorMessage   String?
+  retryCount     Int           @default(0)
+
+  idempotencyKey String        @unique
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([candidateId])
+  @@index([status])
+  @@map("publications")
+}
+
+// Stores encrypted OAuth tokens for the LinkedIn/X platform connections
+// (Phase 4). Access/refresh tokens are encrypted at rest using
+// TOKEN_ENCRYPTION_KEY before being written here; only ciphertext is
+// persisted. Not part of the base spec's model list, but required to
+// support the documented OAuth, token-expiry, and revocation handling.
+model PlatformConnection {
+  id                    String    @id @default(cuid())
+  platform              Platform  @unique
+  accessTokenEncrypted  String?
+  refreshTokenEncrypted String?
+  expiresAt             DateTime?
+  scope                 String?
+  externalAccountId     String?
+  connectedByUserId     String?
+  connectedAt           DateTime?
+  revokedAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("platform_connections")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+
+  action     String
+  objectType String
+  objectId   String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([objectType, objectId])
+  @@map("audit_logs")
+}
