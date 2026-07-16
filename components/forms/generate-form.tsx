@@ -9,6 +9,19 @@ import { Label } from "@/components/ui/label";
 
 const CATEGORIES = Object.values(Category);
 
+const CATEGORY_LABELS: Record<Category, string> = {
+  SAAS_DISCOVERY: "SaaS Discovery",
+  SAAS_COST_OPTIMIZATION: "SaaS Cost Optimization",
+  SAAS_SPRAWL: "SaaS Sprawl",
+  SHADOW_IT: "Shadow IT",
+  SOFTWARE_USAGE_LICENSE_MANAGEMENT: "Software Usage & License Management",
+  AI_POWERED_SAAS_GOVERNANCE: "AI-Powered SaaS Governance",
+  SECURITY_RISK_COMPLIANCE: "Security, Risk & Compliance",
+  SOFTWARE_PROCUREMENT_VENDOR_MANAGEMENT: "Software Procurement & Vendor Management",
+  OPERATIONAL_EFFICIENCY_AUTOMATION: "Operational Efficiency & Automation",
+  BUILDING_LICEO: "Building Liceo",
+};
+
 /**
  * Tone/length/image-style/hashtag-count/CTA controls are collected here for
  * a complete manual-generation UI, but in Phase 1 (simulation mode) only
@@ -75,7 +88,7 @@ export function GenerateForm() {
               }`}
             >
               <input type="checkbox" checked={selected.includes(cat)} onChange={() => toggle(cat)} />
-              {cat.replaceAll("_", " ")}
+              {CATEGORY_LABELS[cat]}
             </label>
           ))}
         </div>
