@@ -92,7 +92,9 @@ export function buildCandidatePrompt(categories: Category[], recentHooks: string
     `characters, up to 3 hashtags including #Liceo), hashtags array, imagePrompt (realistic, professionally`,
     `art-directed, enterprise SaaS concept, no humanoid robots or glowing brains, no fake chart text, leaves`,
     `space for a headline), altText, suggestedPublicationTime (HH:mm), qualityScore (0-1), performanceReason,`,
-    `factualityNotes, and riskNotes. Do not invent customers, partnerships, integrations, or certifications.`,
+    `factualityNotes, and riskNotes. Make each post structurally and rhetorically distinct: vary the opening,`,
+    `paragraph rhythm, argument, practical takeaway, and closing question. Never reuse boilerplate across`,
+    `candidates. Do not invent customers, partnerships, integrations, or certifications.`,
   ].join("\n");
 }
 
@@ -102,7 +104,10 @@ export function buildImagePrompt(basePrompt: string, brandColors: string[]): str
     basePrompt,
     "Style: realistic, professionally art-directed corporate photography or clean modern illustration",
     "suitable for an enterprise software company. Modern office, cloud, software, finance, procurement,",
-    "governance, security, analytics, or operations concepts. Avoid humanoid robots, glowing AI brains,",
+    "governance, security, analytics, or operations concepts. Show a relatable ecosystem of distinct software",
+    "applications: recognizable app tiles, browser tools, subscription cards, or connected SaaS dashboards",
+    "with varied colors and simple generic icons. Avoid relying on abstract circles, nodes, or meaningless charts.",
+    "Avoid humanoid robots, glowing AI brains,",
     "visual clutter, garbled interface text, unreadable fake charts, malformed hands or faces, and any",
     "attempt to recreate a company logo. Leave clear negative space for an optional text headline.",
     palette,

@@ -6,17 +6,12 @@
     </linearGradient>
   </defs>
   <rect width="1200" height="627" fill="url(#bg3)"/>
-  <g opacity="0.15" fill="#ffffff">
-    <rect x="900" y="100" width="10" height="380"/>
-    <rect x="940" y="140" width="10" height="340"/>
-    <rect x="980" y="180" width="10" height="300"/>
-    <rect x="1020" y="220" width="10" height="260"/>
-    <rect x="1060" y="260" width="10" height="220"/>
+  <g font-family="Arial, sans-serif">
+    <text x="790" y="82" fill="#b9cbdc" font-size="18">UNMANAGED APPLICATIONS</text>
+    <g fill="#ffffff" opacity="0.12"><rect x="780" y="105" width="150" height="100" rx="14"/><rect x="950" y="105" width="150" height="100" rx="14"/><rect x="780" y="225" width="150" height="100" rx="14"/><rect x="950" y="225" width="150" height="100" rx="14"/></g>
+    <g fill="#ffffff" font-size="18"><text x="820" y="160">AI Writer</text><text x="990" y="160">File Share</text><text x="820" y="280">PDF Tool</text><text x="980" y="280">Meeting App</text></g>
+    <g fill="#e0c341" font-size="15"><text x="820" y="188">Not reviewed</text><text x="980" y="188">Unknown owner</text><text x="820" y="308">No SSO</text><text x="980" y="308">3 ex-users</text></g>
   </g>
-  <g stroke="#7fa6c9" stroke-width="2" fill="none" opacity="0.5">
-    <rect x="860" y="90" width="260" height="400" rx="16"/>
-  </g>
-  <circle cx="990" cy="150" r="18" fill="#e0c341" opacity="0.85"/>
   <text x="80" y="440" font-family="Arial, sans-serif" font-size="40" fill="#ffffff" font-weight="700">See the risk before</text>
   <text x="80" y="490" font-family="Arial, sans-serif" font-size="40" fill="#ffffff" font-weight="700">it becomes a problem.</text>
   <text x="80" y="540" font-family="Arial, sans-serif" font-size="20" fill="#b9cbdc">Liceo — Security, Risk &amp; Compliance</text>

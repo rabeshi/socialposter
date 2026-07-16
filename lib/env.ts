@@ -12,6 +12,8 @@ const envSchema = z.object({
   OPENAI_TEXT_MODEL: z.string().default("gpt-4o"),
   OPENAI_IMAGE_MODEL: z.string().default("gpt-image-1"),
   OPENAI_EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
+  USE_REAL_AI_TEXT: z.string().default("false").transform((v) => v === "true"),
+  USE_REAL_AI_IMAGES: z.string().default("false").transform((v) => v === "true"),
 
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
 

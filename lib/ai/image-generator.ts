@@ -30,7 +30,7 @@ const SAMPLE_IMAGES = [
 export async function generateImageSet(prompt: string, brandColors: string[], seed: number): Promise<GeneratedImageSet> {
   const env = getEnv();
 
-  if (env.SIMULATION_MODE || !env.OPENAI_API_KEY) {
+  if (!env.USE_REAL_AI_IMAGES || !env.OPENAI_API_KEY || !env.BLOB_READ_WRITE_TOKEN) {
     const sample = SAMPLE_IMAGES[seed % SAMPLE_IMAGES.length]!;
     return {
       originalUrl: sample,

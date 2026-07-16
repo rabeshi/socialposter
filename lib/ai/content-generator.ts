@@ -21,7 +21,7 @@ export interface GenerateCandidatesInput {
 export async function generateCandidates(input: GenerateCandidatesInput): Promise<GeneratedCandidateBatch> {
   const env = getEnv();
 
-  if (env.SIMULATION_MODE || !env.OPENAI_API_KEY) {
+  if (!env.USE_REAL_AI_TEXT || !env.OPENAI_API_KEY) {
     return generateMockCandidates(input);
   }
 
