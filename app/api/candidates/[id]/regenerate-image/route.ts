@@ -32,7 +32,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const brand = await prisma.brandProfile.findFirst();
     const prompt = (parsed.data.imagePrompt ?? candidate.imagePrompt) + (STYLE_SUFFIX[parsed.data.style ?? "default"] ?? "");
-    const images = await generateImageSet(prompt, brand?.brandColors ?? [], Math.floor(Math.random() * 3));
+    const images = await generateImageSet(prompt, brand?.brandColors ?? [], Math.floor(Math.random() * 10_000));
 
     const updated = await prisma.postCandidate.update({
       where: { id: candidate.id },

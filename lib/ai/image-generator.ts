@@ -44,11 +44,12 @@ export async function generateImageSet(prompt: string, brandColors: string[], se
   const { default: OpenAI } = await import("openai");
   const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
-  const fullPrompt = buildImagePrompt(prompt, brandColors);
+  const fullPrompt = buildImagePrompt(prompt, brandColors, seed);
   const result = await client.images.generate({
     model: env.OPENAI_IMAGE_MODEL,
     prompt: fullPrompt,
-    size: "1792x1024",
+    size: "1536x1024",
+    quality: "high",
     n: 1,
   });
 

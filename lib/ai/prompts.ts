@@ -90,29 +90,44 @@ export function buildCandidatePrompt(categories: Category[], recentHooks: string
       : "",
     `\nFor each candidate produce: category, contentAngle, hook, optional headline, linkedinCopy (80-180 words,`,
     `3-5 hashtags including #Liceo, ends with an insight or restrained question), xCopy (approximately 180-260`,
-    `characters, up to 3 hashtags including #Liceo), hashtags array, imagePrompt (realistic, professionally`,
-    `art-directed, enterprise SaaS concept, no humanoid robots or glowing brains, no fake chart text, leaves`,
-    `space for a headline), altText, suggestedPublicationTime (HH:mm), qualityScore (0-1), performanceReason,`,
+    `characters, up to 3 hashtags including #Liceo), hashtags array, imagePrompt, altText,`,
+    `suggestedPublicationTime (HH:mm), qualityScore (0-1), performanceReason,`,
     `factualityNotes, and riskNotes. Make each post structurally and rhetorically distinct: vary the opening,`,
     `paragraph rhythm, argument, practical takeaway, and closing question. Never reuse boilerplate across`,
     `candidates. Do not invent customers, partnerships, integrations, or certifications.`,
+    `For each imagePrompt, act as a senior advertising art director. Translate that specific post's central`,
+    `insight into one concrete, memorable physical metaphor that works without explanatory text. Specify the`,
+    `hero subject, supporting objects, environment, camera angle, lighting, materials, and color mood. The three`,
+    `concepts must use different hero subjects, settings, angles, and metaphors. Do not use a dashboard, laptop,`,
+    `cloud, shield, or floating app tiles as the main subject more than once across the batch. Avoid generic`,
+    `'professional graphic' and 'software dashboard with metrics' descriptions, fake text, and unrelated imagery.`,
   ].join("\n");
 }
 
-export function buildImagePrompt(basePrompt: string, brandColors: string[]): string {
+const VISUAL_DIRECTIONS = [
+  "Cinematic macro product photograph, low three-quarter angle, tactile hero object in sharp focus, minimal background.",
+  "Bright editorial tabletop still life, overhead camera, carefully arranged physical objects telling a visual story.",
+  "Premium architectural miniature or diorama, wide eye-level camera, layered depth and realistic scale-model materials.",
+  "Sophisticated split-scene comparison showing before versus after without labels, symmetrical wide composition.",
+  "Dynamic frozen-motion commercial photograph, strong diagonal movement, one surprising physical transformation.",
+  "Clean museum-display scene, centered sculptural metaphor on a pedestal, soft gallery lighting and negative space.",
+  "Realistic operations room viewed from behind and above, people secondary, physical workflow metaphor dominant.",
+  "Optimistic glass-atrium business scene, natural morning light, expansive framing and an unexpected SaaS metaphor.",
+] as const;
+
+export function buildImagePrompt(basePrompt: string, brandColors: string[], seed = 0): string {
   const palette = brandColors.length ? ` Palette accents: ${brandColors.join(", ")}.` : "";
+  const direction = VISUAL_DIRECTIONS[Math.abs(seed) % VISUAL_DIRECTIONS.length]!;
   return [
     basePrompt,
+    `Composition direction: ${direction}`,
     "Create a premium photorealistic 3D editorial advertising image for an enterprise SaaS company—not a flat",
-    "vector graphic, slide, poster, or ordinary screenshot. Build the scene around one memorable physical metaphor",
-    "for the post topic, such as a cloud containing subscription costs, unused software seats, overlapping tools,",
-    "a security shield, procurement documents, or connected workflow objects. Surround it with polished floating",
-    "rounded-square software app tiles using distinct familiar colors and clean generic symbols. The tiles should",
-    "immediately read as a diverse ecosystem of business applications without reproducing trademarked logos.",
-    "Place the scene in a bright, premium modern workspace with a laptop or phone showing an elegant SaaS analytics",
-    "dashboard. Use realistic materials, natural daylight, soft shadows, subtle depth of field, crisp product-photo",
+    "vector graphic, slide, poster, or ordinary screenshot. Honor the supplied post-specific metaphor as the hero;",
+    "do not replace it with a generic dashboard. App tiles, screens, charts, clouds, locks, and shields may appear",
+    "only when they support this particular concept and must not become the default composition. Use realistic",
+    "materials, natural or cinematic light, soft shadows, subtle depth of field, and crisp product-photo",
     "detail, balanced visual hierarchy, and a sophisticated white, navy, blue, and multicolor palette. Make the",
-    "topic understandable at a glance. Avoid dark generic corporate banners, abstract node diagrams, meaningless",
+    "specific post insight understandable at a glance. Avoid generic corporate banners, abstract node diagrams, meaningless",
     "charts, excessive interface panels, humanoid robots, glowing AI brains, visual clutter, garbled text, malformed",
     "hands or faces, prominent typography, and copied company logos. Leave some clean negative space.",
     palette,

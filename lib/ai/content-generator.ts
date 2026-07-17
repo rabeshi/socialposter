@@ -32,7 +32,7 @@ export async function generateCandidates(input: GenerateCandidatesInput): Promis
   const systemPrompt = buildSystemPrompt(input.companyDescription, input.productDescription);
   const userPrompt = buildCandidatePrompt(input.categories, input.recentHooks);
 
-  const response = await client.beta.chat.completions.parse({
+  const response = await client.chat.completions.parse({
     model: env.OPENAI_TEXT_MODEL,
     messages: [
       { role: "system", content: systemPrompt },
