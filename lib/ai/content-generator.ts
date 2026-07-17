@@ -26,36 +26,25 @@ export async function generateCandidates(input: GenerateCandidatesInput): Promis
   }
 
   const { default: OpenAI } = await import("openai");
+  const { zodResponseFormat } = await import("openai/helpers/zod");
   const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
   const systemPrompt = buildSystemPrompt(input.companyDescription, input.productDescription);
   const userPrompt = buildCandidatePrompt(input.categories, input.recentHooks);
 
-  const response = await client.chat.completions.create({
+  const response = await client.beta.chat.completions.parse({
     model: env.OPENAI_TEXT_MODEL,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ],
-    response_format: { type: "json_object" },
+    response_format: zodResponseFormat(candidateBatchSchema, "liceo_candidate_batch"),
   });
 
-  const raw = response.choices[0]?.message?.content;
-  if (!raw) throw new Error("OpenAI returned no content for candidate generation.");
-
-  let parsedJson: unknown;
-  try {
-    parsedJson = JSON.parse(raw);
-  } catch {
-    throw new Error("OpenAI candidate response was not valid JSON.");
-  }
-
-  const validated = candidateBatchSchema.safeParse(parsedJson);
-  if (!validated.success) {
-    throw new Error(`OpenAI candidate response failed schema validation: ${validated.error.message}`);
-  }
-
-  return validated.data;
+  const message = response.choices[0]?.message;
+  if (message?.refusal) throw new Error(`OpenAI refused candidate generation: ${message.refusal}`);
+  if (!message?.parsed) throw new Error("OpenAI returned no validated candidate batch.");
+  return message.parsed;
 }
 
 function generateMockCandidates(input: GenerateCandidatesInput): GeneratedCandidateBatch {
