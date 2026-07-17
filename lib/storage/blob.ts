@@ -44,3 +44,13 @@ export async function uploadBrandAsset(buffer: Buffer, contentType: string): Pro
   assertValidImageUpload(contentType, buffer.byteLength);
   return uploadImageFromBuffer(buffer, "brand", contentType);
 }
+
+/** Deletes generated Vercel Blob assets, ignoring local sample paths and non-Blob URLs. */
+export async function deleteGeneratedImages(urls: Array<string | null>): Promise<void> {
+  const env = getEnv();
+  if (!env.BLOB_READ_WRITE_TOKEN) return;
+  const blobUrls = [...new Set(urls.filter((url): url is string => Boolean(url) && url!.includes("blob.vercel-storage.com")))];
+  if (blobUrls.length === 0) return;
+  const { del } = await import("@vercel/blob");
+  await del(blobUrls, { token: env.BLOB_READ_WRITE_TOKEN });
+}

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireSession, handleApiError, ApiError } from "@/lib/api-helpers";
+import { requireSession, requireRole, handleApiError, ApiError } from "@/lib/api-helpers";
 import { recordAudit, clientIp } from "@/lib/audit";
 import { validateLinkedInCopy, validateXCopy } from "@/lib/ai/schemas";
+import { deleteGeneratedImages } from "@/lib/storage/blob";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -92,6 +93,42 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     });
 
     return NextResponse.json({ candidate: updated, warnings });
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+/** Permanently removes a post and its related versions, approvals, publications, and generated images. */
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await requireRole(["ADMIN"]);
+    const { id } = await params;
+    const candidate = await prisma.postCandidate.findUnique({ where: { id } });
+    if (!candidate) throw new ApiError(404, "Candidate not found");
+
+    await recordAudit({
+      userId: session.user.id,
+      action: "CANDIDATE_DELETED",
+      objectType: "PostCandidate",
+      objectId: candidate.id,
+      metadata: { category: candidate.category, hook: candidate.hook },
+      ipAddress: clientIp(request),
+    });
+    await prisma.postCandidate.delete({ where: { id: candidate.id } });
+
+    try {
+      await deleteGeneratedImages([
+        candidate.originalImageUrl,
+        candidate.linkedinLandscapeUrl,
+        candidate.linkedinSquareUrl,
+        candidate.xImageUrl,
+        candidate.thumbnailUrl,
+      ]);
+    } catch (blobError) {
+      console.error("Post deleted, but generated image cleanup failed:", blobError);
+    }
+
+    return NextResponse.json({ deleted: true });
   } catch (error) {
     return handleApiError(error);
   }

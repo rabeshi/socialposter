@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/posts/status-badge";
 import { PostsFilterBar } from "@/components/posts/posts-filter-bar";
+import { DeletePostButton } from "@/components/posts/delete-post-button";
 
 export const dynamic = "force-dynamic";
 
@@ -59,9 +60,9 @@ export default async function PostsPage({ searchParams }: { searchParams: Promis
           <Card><CardContent className="pt-6 text-sm text-muted-foreground">No posts match these filters.</CardContent></Card>
         )}
         {candidates.map((c) => (
-          <Link key={c.id} href={`/posts/${c.id}`}>
-            <Card className="transition-colors hover:border-primary">
-              <CardContent className="flex flex-col gap-2 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <Card key={c.id} className="transition-colors hover:border-primary">
+            <CardContent className="flex flex-col gap-3 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <Link href={`/posts/${c.id}`} className="min-w-0 flex-1">
                 <div>
                   <p className="font-medium">{c.hook}</p>
                   <p className="text-xs text-muted-foreground">
@@ -69,15 +70,16 @@ export default async function PostsPage({ searchParams }: { searchParams: Promis
                     {c.approvals[0]?.reviewer?.name ? ` · reviewed by ${c.approvals[0].reviewer.name}` : ""}
                   </p>
                 </div>
+              </Link>
                 <div className="flex items-center gap-2">
                   {c.publications.map((p) => (
                     <StatusBadge key={p.id} status={`${p.platform}: ${p.status}`.length > 24 ? p.status : `${p.platform} ${p.status}`} />
                   ))}
                   <StatusBadge status={c.status} />
+                  <DeletePostButton postId={c.id} hook={c.hook} />
                 </div>
-              </CardContent>
-            </Card>
-          </Link>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>
