@@ -103,14 +103,15 @@ export function buildImagePrompt(basePrompt: string, brandColors: string[]): str
   const palette = brandColors.length ? ` Palette accents: ${brandColors.join(", ")}.` : "";
   return [
     basePrompt,
-    "Style: realistic, professionally art-directed corporate photography or clean modern illustration",
-    "suitable for an enterprise software company. Modern office, cloud, software, finance, procurement,",
-    "governance, security, analytics, or operations concepts. Show a relatable ecosystem of distinct software",
-    "applications: recognizable app tiles, browser tools, subscription cards, or connected SaaS dashboards",
-    "with varied colors and simple generic icons. Avoid relying on abstract circles, nodes, or meaningless charts.",
-    "Avoid humanoid robots, glowing AI brains,",
-    "visual clutter, garbled interface text, unreadable fake charts, malformed hands or faces, and any",
-    "attempt to recreate a company logo. Leave clear negative space for an optional text headline.",
+    "Create a photorealistic, premium commercial photograph for an enterprise software company—not a vector",
+    "illustration, infographic, slide, poster, or flat UI mockup. Show a believable modern workplace with a",
+    "laptop or large monitor displaying a polished SaaS-management dashboard and a grid of distinct colorful",
+    "generic software application tiles. The applications should feel familiar and relatable through varied",
+    "icon shapes and colors, but must not copy real company logos or contain readable brand names.",
+    "Use natural office lighting, realistic materials, subtle depth of field, restrained navy and neutral tones,",
+    "and an editorial corporate-photography composition. Avoid abstract circles, floating nodes, meaningless",
+    "charts, humanoid robots, glowing AI brains, visual clutter, garbled interface text, malformed hands or",
+    "faces, prominent typography, and recreated company logos. Leave clear negative space for an optional headline.",
     palette,
   ].join(" ");
 }
