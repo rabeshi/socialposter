@@ -82,6 +82,7 @@ export function buildCandidatePrompt(categories: Category[], recentHooks: string
     .join("\n");
 
   return [
+    `Return one valid JSON object only. Do not include Markdown, commentary, or code fences.`,
     `Generate exactly 3 distinct post candidates, one per category below:`,
     categoryBriefs,
     recentHooks.length
