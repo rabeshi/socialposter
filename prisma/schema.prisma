@@ -269,9 +269,70 @@ model Publication {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
+  metricSnapshots SocialPostMetricSnapshot[]
+  conversionEvents WebsiteConversionEvent[]
+
   @@index([candidateId])
   @@index([status])
   @@map("publications")
+}
+
+model SocialAccountSnapshot {
+  id             String   @id @default(cuid())
+  platform       Platform
+  capturedAt     DateTime @default(now())
+  followers      Int?
+  newFollowers   Int?
+  impressions    Int?
+  reach          Int?
+  engagements    Int?
+  profileViews   Int?
+  pageViews      Int?
+  websiteClicks  Int?
+  linkClicks     Int?
+  mentions       Int?
+  leads          Int?
+  audience       Json?
+
+  @@index([platform, capturedAt])
+  @@map("social_account_snapshots")
+}
+
+model SocialPostMetricSnapshot {
+  id                  String      @id @default(cuid())
+  publicationId       String
+  publication         Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  capturedAt          DateTime    @default(now())
+  impressions         Int?
+  reach               Int?
+  likes               Int?
+  comments            Int?
+  reposts             Int?
+  saves               Int?
+  clicks              Int?
+  replies             Int?
+  quotes               Int?
+  bookmarks           Int?
+  videoViews          Int?
+  watchTimeSeconds    Int?
+  videoCompletionRate Float?
+
+  @@index([publicationId, capturedAt])
+  @@map("social_post_metric_snapshots")
+}
+
+model WebsiteConversionEvent {
+  id            String       @id @default(cuid())
+  platform      Platform?
+  publicationId String?
+  publication   Publication? @relation(fields: [publicationId], references: [id], onDelete: SetNull)
+  eventType     String
+  occurredAt    DateTime     @default(now())
+  metadata      Json?
+
+  @@index([platform, occurredAt])
+  @@index([publicationId])
+  @@map("website_conversion_events")
 }
 
 // Stores encrypted OAuth tokens for the LinkedIn/X platform connections
