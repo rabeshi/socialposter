@@ -103,15 +103,18 @@ export function buildImagePrompt(basePrompt: string, brandColors: string[]): str
   const palette = brandColors.length ? ` Palette accents: ${brandColors.join(", ")}.` : "";
   return [
     basePrompt,
-    "Create a photorealistic, premium commercial photograph for an enterprise software company—not a vector",
-    "illustration, infographic, slide, poster, or flat UI mockup. Show a believable modern workplace with a",
-    "laptop or large monitor displaying a polished SaaS-management dashboard and a grid of distinct colorful",
-    "generic software application tiles. The applications should feel familiar and relatable through varied",
-    "icon shapes and colors, but must not copy real company logos or contain readable brand names.",
-    "Use natural office lighting, realistic materials, subtle depth of field, restrained navy and neutral tones,",
-    "and an editorial corporate-photography composition. Avoid abstract circles, floating nodes, meaningless",
-    "charts, humanoid robots, glowing AI brains, visual clutter, garbled interface text, malformed hands or",
-    "faces, prominent typography, and recreated company logos. Leave clear negative space for an optional headline.",
+    "Create a premium photorealistic 3D editorial advertising image for an enterprise SaaS company—not a flat",
+    "vector graphic, slide, poster, or ordinary screenshot. Build the scene around one memorable physical metaphor",
+    "for the post topic, such as a cloud containing subscription costs, unused software seats, overlapping tools,",
+    "a security shield, procurement documents, or connected workflow objects. Surround it with polished floating",
+    "rounded-square software app tiles using distinct familiar colors and clean generic symbols. The tiles should",
+    "immediately read as a diverse ecosystem of business applications without reproducing trademarked logos.",
+    "Place the scene in a bright, premium modern workspace with a laptop or phone showing an elegant SaaS analytics",
+    "dashboard. Use realistic materials, natural daylight, soft shadows, subtle depth of field, crisp product-photo",
+    "detail, balanced visual hierarchy, and a sophisticated white, navy, blue, and multicolor palette. Make the",
+    "topic understandable at a glance. Avoid dark generic corporate banners, abstract node diagrams, meaningless",
+    "charts, excessive interface panels, humanoid robots, glowing AI brains, visual clutter, garbled text, malformed",
+    "hands or faces, prominent typography, and copied company logos. Leave some clean negative space.",
     palette,
   ].join(" ");
 }
