@@ -13,6 +13,7 @@ import {
   Plug,
   Timer,
   Settings,
+  ChartNoAxesCombined,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { href: "/review", label: "Review", icon: ClipboardCheck },
   { href: "/posts", label: "Post History", icon: FileText },
   { href: "/calendar", label: "Calendar", icon: Calendar },
+  { href: "/analytics", label: "Analytics", icon: ChartNoAxesCombined },
   { href: "/generate", label: "Generate", icon: Sparkles },
   { href: "/brand", label: "Brand", icon: Palette },
   { href: "/integrations", label: "Integrations", icon: Plug },
