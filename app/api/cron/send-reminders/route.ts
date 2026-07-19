@@ -3,7 +3,7 @@ import { ContentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getEnv } from "@/lib/env";
 import { assertCronAuthorized, UnauthorizedError, signReviewLink } from "@/lib/security";
-import { sendEmail, getApprovalRecipients } from "@/lib/email/resend";
+import { sendEmail, getAdminApprovalRecipients } from "@/lib/email/resend";
 import ReminderEmail from "@/emails/reminder-email";
 
 /**
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
   const env = getEnv();
   const settings = await prisma.automationSettings.upsert({ where: { id: "singleton" }, update: {}, create: { id: "singleton" } });
-  const recipients = getApprovalRecipients();
+  const recipients = await getAdminApprovalRecipients();
   if (recipients.length === 0) return NextResponse.json({ sent: 0, reason: "no_recipients" });
 
   const cutoff = new Date(Date.now() - settings.reminderIntervalHours * 60 * 60 * 1000);

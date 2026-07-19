@@ -5,7 +5,7 @@ import { assertCronAuthorized, UnauthorizedError } from "@/lib/security";
 import { combinePublicationStatuses, shouldRetry, backoffDelayMs } from "@/lib/scheduling/publishing";
 import { publishToLinkedIn } from "@/lib/integrations/linkedin";
 import { publishToX } from "@/lib/integrations/x";
-import { sendEmail, getApprovalRecipients } from "@/lib/email/resend";
+import { sendEmail, getAdminApprovalRecipients } from "@/lib/email/resend";
 import PublicationResultEmail from "@/emails/publication-result-email";
 import { getEnv } from "@/lib/env";
 import { recordAudit } from "@/lib/audit";
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
     await prisma.postCandidate.update({ where: { id: publication.candidateId }, data: { status: combinedStatus } });
 
     if (combinedStatus === ContentStatus.PUBLISHED || combinedStatus === ContentStatus.PARTIALLY_PUBLISHED) {
-      const recipients = getApprovalRecipients();
+      const recipients = await getAdminApprovalRecipients();
       if (recipients.length > 0) {
         const linkedinPub = allPublications.find((p) => p.platform === Platform.LINKEDIN);
         const xPub = allPublications.find((p) => p.platform === Platform.X);

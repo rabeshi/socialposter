@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getEnv } from "@/lib/env";
 import { signReviewLink } from "@/lib/security";
-import { sendEmail, getApprovalRecipients } from "@/lib/email/resend";
+import { sendEmail, getAdminApprovalRecipients } from "@/lib/email/resend";
 import ApprovalEmail from "@/emails/approval-email-v2";
 
 export async function sendApprovalEmail(batchId: string): Promise<void> {
@@ -9,7 +9,7 @@ export async function sendApprovalEmail(batchId: string): Promise<void> {
   const batch = await prisma.contentBatch.findUnique({ where: { id: batchId }, include: { candidates: true } });
   if (!batch) throw new Error(`Batch ${batchId} not found for approval email.`);
 
-  const recipients = getApprovalRecipients();
+  const recipients = await getAdminApprovalRecipients();
   if (recipients.length === 0) {
     console.warn(`No approval email recipients configured; skipping email for batch ${batchId}.`);
     return;

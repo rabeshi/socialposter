@@ -1,4 +1,6 @@
 import { getEnv, approvalEmailList } from "@/lib/env";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
 export interface SendEmailInput {
   to: string[];
@@ -40,4 +42,24 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
 export function getApprovalRecipients(): string[] {
   const env = getEnv();
   return approvalEmailList(env);
+}
+
+/**
+ * Returns every administrator plus any explicitly configured recipients.
+ * Keeping the configured list preserves external approval inboxes, while
+ * querying admins ensures new portal administrators receive notifications
+ * without requiring another Vercel environment-variable update.
+ */
+export async function getAdminApprovalRecipients(): Promise<string[]> {
+  const configured = getApprovalRecipients();
+  const admins = await prisma.user.findMany({
+    where: { role: "ADMIN" },
+    select: { email: true },
+  });
+
+  return [...new Set(
+    [...configured, ...admins.map((admin) => admin.email)]
+      .map((email) => email.trim().toLowerCase())
+      .filter((email) => z.string().email().safeParse(email).success)
+  )];
 }
