@@ -71,10 +71,15 @@ export async function POST(request: Request) {
         productDescription: brand?.productDescription ?? "Liceo helps organizations discover, govern, and optimize their software ecosystems.",
       });
 
+      const candidatesWithImages = await Promise.all(
+        generated.candidates.map(async (candidate, index) => ({
+          candidate,
+          images: await generateImageSet(candidate.imagePrompt, brand?.brandColors ?? [], index),
+        }))
+      );
+
       const created = [];
-      for (let i = 0; i < generated.candidates.length; i++) {
-        const c = generated.candidates[i]!;
-        const images = await generateImageSet(c.imagePrompt, brand?.brandColors ?? [], i);
+      for (const { candidate: c, images } of candidatesWithImages) {
         const candidate = await prisma.postCandidate.create({
           data: {
             batchId: batch.id,

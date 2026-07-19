@@ -23,10 +23,8 @@ export async function sendApprovalEmail(batchId: string): Promise<void> {
   const categoryLabel = (value: string) => value.toLowerCase().split("_").map((word) => word === "saas" ? "SaaS" : word === "ai" ? "AI" : word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
   const publishingTime = (value: string | null) => { const [hours = "9", minutes = "00"] = (value ?? "09:00").split(":"); const hour = Number(hours); return `${hour % 12 || 12}:${minutes} ${hour >= 12 ? "PM" : "AM"}`; };
 
-  await sendEmail({
-    to: recipients,
-    subject: `Liceo Social | ${batch.candidates.length} Posts Ready for Review`,
-    react: ApprovalEmail({
+  const subject = `Liceo Social | ${batch.candidates.length} Posts Ready for Review`;
+  const email = () => ApprovalEmail({
       generatedDate: batch.generationDate.toISOString().slice(0, 10),
       candidates: batch.candidates.map((c) => ({
         category: categoryLabel(c.category),
@@ -40,6 +38,18 @@ export async function sendApprovalEmail(batchId: string): Promise<void> {
       rejectAllUrl,
       requestNewUrl,
       appUrl: env.NEXT_PUBLIC_APP_URL,
-    }),
-  });
+    });
+
+  // Send separately so one restricted or invalid recipient cannot prevent
+  // delivery to every other administrator.
+  const results = await Promise.allSettled(
+    recipients.map((recipient) => sendEmail({ to: [recipient], subject, react: email() }))
+  );
+  const delivered = results.filter((result) => result.status === "fulfilled").length;
+  if (delivered === 0) {
+    const failures = results
+      .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+      .map((result) => result.reason instanceof Error ? result.reason.message : String(result.reason));
+    throw new Error(`Approval email failed for every recipient: ${failures.join("; ")}`);
+  }
 }

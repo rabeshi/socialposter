@@ -65,9 +65,24 @@ export async function GET(request: Request) {
 
   const alreadyRanToday = await prisma.contentBatch.findFirst({
     where: { generationSource: GenerationSource.SCHEDULED, idempotencyKey: { startsWith: `batch_${dateKey}_scheduled` } },
+    orderBy: { createdAt: "desc" },
   });
   if (alreadyRanToday) {
-    return NextResponse.json({ generated: false, reason: "already_generated_today" });
+    const staleGeneration =
+      alreadyRanToday.status === ContentStatus.GENERATING &&
+      alreadyRanToday.createdAt.getTime() <= Date.now() - 15 * 60 * 1000;
+
+    if (staleGeneration) {
+      await prisma.contentBatch.update({
+        where: { id: alreadyRanToday.id },
+        data: {
+          status: ContentStatus.GENERATION_FAILED,
+          errorDetails: "Generation exceeded the execution window and was automatically recovered for retry.",
+        },
+      });
+    } else if (alreadyRanToday.status !== ContentStatus.GENERATION_FAILED) {
+      return NextResponse.json({ generated: false, reason: "already_generated_today" });
+    }
   }
 
   const brand = await prisma.brandProfile.findFirst();
@@ -105,10 +120,17 @@ export async function GET(request: Request) {
       productDescription: brand?.productDescription ?? "Liceo helps organizations discover, govern, and optimize their software ecosystems.",
     });
 
+    // Image generation dominates runtime. Run the three independent calls
+    // concurrently so the cron stays within Vercel's execution window.
+    const candidatesWithImages = await Promise.all(
+      generated.candidates.map(async (candidate, index) => ({
+        candidate,
+        images: await generateImageSet(candidate.imagePrompt, brand?.brandColors ?? [], index),
+      }))
+    );
+
     const created = [];
-    for (let i = 0; i < generated.candidates.length; i++) {
-      const c = generated.candidates[i]!;
-      const images = await generateImageSet(c.imagePrompt, brand?.brandColors ?? [], i);
+    for (const { candidate: c, images } of candidatesWithImages) {
       const candidate = await prisma.postCandidate.create({
         data: {
           batchId: batch.id,
@@ -157,7 +179,13 @@ export async function GET(request: Request) {
       data: { lastSuccessfulGenerationAt: new Date(), nextGenerationAt, remindersSentForCurrentBatch: 0 },
     });
 
-    await sendApprovalEmail(batch.id);
+    try {
+      await sendApprovalEmail(batch.id);
+    } catch (emailError) {
+      // Keep a successfully generated batch reviewable even when an email
+      // provider rejects every recipient. Reminders can retry delivery later.
+      console.error("Scheduled batch generated, but approval email failed:", emailError);
+    }
 
     await recordAudit({
       action: "BATCH_GENERATED_SCHEDULED",
