@@ -84,14 +84,14 @@ vercel deploy --prod
 ```json
 {
   "crons": [
-    { "path": "/api/cron/generate-content", "schedule": "0 16 * * *" },
+    { "path": "/api/cron/generate-content", "schedule": "55 17 * * *" },
     { "path": "/api/cron/send-reminders", "schedule": "0 18 * * *" },
     { "path": "/api/cron/publish-scheduled", "schedule": "0 19 * * *" }
   ]
 }
 ```
 
-Vercel automatically sends `Authorization: Bearer $CRON_SECRET` to these routes; make sure `CRON_SECRET` is set in the project's environment variables. The Hobby-plan generation cron runs daily at 16:00 UTC (9:00 AM Pacific during daylight-saving time), but only actually generates a batch once `AutomationSettings.nextGenerationAt` has arrived. The two-day cadence remains controlled from the Automation page.
+Vercel automatically sends `Authorization: Bearer $CRON_SECRET` to these routes; make sure `CRON_SECRET` is set in the project's environment variables. The Hobby-plan generation cron runs daily at 17:55 UTC (10:55 AM Pacific during daylight-saving time), but only actually generates a batch once `AutomationSettings.nextGenerationAt` has arrived. The two-day cadence remains controlled from the Automation page. Hobby cron invocation may be delayed within the following hour.
 
 ## 12. Connecting LinkedIn (Phase 4)
 
