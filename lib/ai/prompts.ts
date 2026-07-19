@@ -88,7 +88,7 @@ export function buildCandidatePrompt(categories: Category[], recentHooks: string
     recentHooks.length
       ? `\nAvoid reusing these recent hooks or opening sentences:\n${recentHooks.map((h) => `- ${h}`).join("\n")}`
       : "",
-    `\nFor each candidate produce: category, contentAngle, hook, optional headline, linkedinCopy (80-180 words,`,
+    `\nFor each candidate produce: category, contentAngle, hook, headline (use null when no separate headline is needed), linkedinCopy (80-180 words,`,
     `3-5 hashtags including #Liceo, ends with an insight or restrained question), xCopy (approximately 180-260`,
     `characters, up to 3 hashtags including #Liceo), hashtags array, imagePrompt, altText,`,
     `suggestedPublicationTime (HH:mm), qualityScore (0-1), performanceReason,`,

@@ -84,14 +84,14 @@ vercel deploy --prod
 ```json
 {
   "crons": [
-    { "path": "/api/cron/generate-content", "schedule": "0 17 * * *" },
-    { "path": "/api/cron/send-reminders", "schedule": "0 18 * * *" },
+    { "path": "/api/cron/generate-content", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/send-reminders", "schedule": "*/15 * * * *" },
     { "path": "/api/cron/publish-scheduled", "schedule": "*/15 * * * *" }
   ]
 }
 ```
 
-Vercel automatically sends `Authorization: Bearer $CRON_SECRET` to these routes; make sure `CRON_SECRET` is set in the project's environment variables. The generation cron runs daily but only actually generates a batch once `AutomationSettings.nextGenerationAt` has arrived — adjust the daily hour in `vercel.json` to taste, it does not change the 2-day cadence itself (that's controlled from the Automation page).
+Vercel automatically sends `Authorization: Bearer $CRON_SECRET` to these routes; make sure `CRON_SECRET` is set in the project's environment variables. The generation cron checks every 15 minutes but only actually generates a batch once `AutomationSettings.nextGenerationAt` has arrived, so the two-day cadence remains controlled from the Automation page. Scheduled times are therefore honored within a 15-minute window.
 
 ## 12. Connecting LinkedIn (Phase 4)
 

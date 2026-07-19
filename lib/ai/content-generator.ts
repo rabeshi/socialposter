@@ -77,7 +77,7 @@ function buildMockCandidate(category: Category): GeneratedCandidateBatch["candid
     category,
     contentAngle: theme.description,
     hook,
-    headline: theme.exampleTheme.length <= 60 ? theme.exampleTheme : undefined,
+    headline: theme.exampleTheme.length <= 60 ? theme.exampleTheme : null,
     linkedinCopy,
     xCopy,
     hashtags: ["#Liceo", "#SaaSManagement", "#ITGovernance", "#SoftwareSpend"],

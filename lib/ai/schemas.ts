@@ -7,7 +7,9 @@ export const candidateSchema = z.object({
   category: z.enum(CATEGORY_VALUES),
   contentAngle: z.string().min(10).max(200),
   hook: z.string().min(5).max(200),
-  headline: z.string().max(80).optional(),
+  // Structured Outputs requires every property to be present. A nullable
+  // value represents "no headline" without producing an optional JSON key.
+  headline: z.string().max(80).nullable(),
   linkedinCopy: z.string().min(20),
   xCopy: z.string().min(10).max(280),
   hashtags: z.array(z.string().regex(/^#\w+$/)).min(1).max(6),
