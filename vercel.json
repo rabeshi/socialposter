@@ -2,15 +2,15 @@
   "crons": [
     {
       "path": "/api/cron/generate-content",
-      "schedule": "*/15 * * * *"
+      "schedule": "30 23 * * *"
     },
     {
       "path": "/api/cron/send-reminders",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 18 * * *"
     },
     {
       "path": "/api/cron/publish-scheduled",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 19 * * *"
     }
   ]
 }
