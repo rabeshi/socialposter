@@ -33,6 +33,7 @@ export default async function BrandPage() {
           standardHashtags: brand.standardHashtags.join(", "),
           approvalEmailRecipients: brand.approvalEmailRecipients.join(", "),
           logoUrl: brand.logoUrl,
+          featuredImageUrl: brand.featuredImageUrl,
         }}
       />
     </div>

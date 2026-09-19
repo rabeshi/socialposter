@@ -107,6 +107,7 @@ model BrandProfile {
   approvedTerms          String[] @default([])
   prohibitedTerms        String[] @default([])
   logoUrl                String?
+  featuredImageUrl       String?
   brandColors            String[] @default([])
   website                String   @default("https://liceo.io")
   standardHashtags       String[] @default(["#Liceo"])

@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { FEATURED_IMAGE_TYPES, featuredImageValidationError } from "@/lib/storage/featured-image";
 
 interface BrandFormValues {
   companyDescription: string;
@@ -19,6 +21,7 @@ interface BrandFormValues {
   standardHashtags: string;
   approvalEmailRecipients: string;
   logoUrl: string | null;
+  featuredImageUrl: string | null;
 }
 
 export function BrandSettingsForm({ brand }: { brand: BrandFormValues }) {
@@ -27,6 +30,37 @@ export function BrandSettingsForm({ brand }: { brand: BrandFormValues }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [featuredImageBusy, setFeaturedImageBusy] = useState(false);
+  const [featuredImageMessage, setFeaturedImageMessage] = useState<string | null>(null);
+
+  async function handleFeaturedImage(file?: File) {
+    setFeaturedImageMessage(null);
+    if (file) {
+      const error = featuredImageValidationError(file);
+      if (error) {
+        setFeaturedImageMessage(error);
+        return;
+      }
+    }
+    setFeaturedImageBusy(true);
+    try {
+      const body = new FormData();
+      if (file) body.append("file", file);
+      const res = await fetch("/api/uploads/featured-image", {
+        method: file ? "POST" : "DELETE",
+        ...(file ? { body } : {}),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Could not update the featured image.");
+      set("featuredImageUrl", result.featuredImageUrl);
+      setFeaturedImageMessage(file ? "Featured image saved." : "Featured image removed.");
+      router.refresh();
+    } catch (error) {
+      setFeaturedImageMessage(error instanceof Error ? error.message : "Could not update the featured image.");
+    } finally {
+      setFeaturedImageBusy(false);
+    }
+  }
 
   function set<K extends keyof BrandFormValues>(key: K, val: BrandFormValues[K]) {
     setValues((v) => ({ ...v, [key]: val }));
@@ -84,6 +118,41 @@ export function BrandSettingsForm({ brand }: { brand: BrandFormValues }) {
         <CardTitle>Company &amp; Voice</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-3 border-b pb-6" aria-busy={featuredImageBusy}>
+          <Label htmlFor="brand-featured-image">Featured image</Label>
+          {values.featuredImageUrl ? (
+            <div className="relative aspect-video w-full max-w-2xl overflow-hidden rounded-lg border bg-muted">
+              <Image src={values.featuredImageUrl} alt="Brand featured image" fill unoptimized sizes="(max-width: 768px) 100vw, 672px" className="object-contain" />
+            </div>
+          ) : (
+            <div className="flex aspect-video w-full max-w-2xl items-center justify-center rounded-lg border border-dashed bg-muted/30 text-sm text-muted-foreground">
+              Upload an image to feature your brand.
+            </div>
+          )}
+          <Input
+            id="brand-featured-image"
+            type="file"
+            accept={FEATURED_IMAGE_TYPES.join(",")}
+            disabled={featuredImageBusy}
+            aria-describedby="brand-featured-image-help"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) void handleFeaturedImage(file);
+            }}
+          />
+          <p id="brand-featured-image-help" className="text-xs text-muted-foreground">
+            PNG, JPEG, or WebP up to 4 MB. A landscape image works best. Uploads save automatically.
+          </p>
+          {values.featuredImageUrl && (
+            <Button type="button" variant="outline" disabled={featuredImageBusy} onClick={() => void handleFeaturedImage()}>
+              Remove featured image
+            </Button>
+          )}
+          <p role="status" aria-live="polite" className="text-sm">
+            {featuredImageBusy ? "Updating featured image..." : featuredImageMessage}
+          </p>
+        </div>
         <div className="space-y-2">
           <Label>Company description</Label>
           <Textarea rows={3} value={values.companyDescription} onChange={(e) => set("companyDescription", e.target.value)} />
