@@ -14,6 +14,7 @@ export interface CandidateData {
   hook: string;
   headline: string | null;
   linkedinCopy: string;
+  facebookCopy: string;
   xCopy: string;
   hashtags: string[];
   altText: string | null;
@@ -84,6 +85,11 @@ export function CandidateCard({
         <div>
           <p className="text-xs font-semibold text-muted-foreground">X ({candidate.xCopy.length}/280 chars)</p>
           <p className="text-sm">{candidate.xCopy}</p>
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground">Facebook ({wordCount(candidate.facebookCopy)} words)</p>
+          <p className="whitespace-pre-line text-sm">{candidate.facebookCopy}</p>
         </div>
 
         <div className="flex flex-wrap gap-1">

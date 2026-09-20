@@ -8,6 +8,7 @@ export interface GenerateCandidatesInput {
   recentHooks: string[];
   companyDescription: string;
   productDescription: string;
+  contentBrief?: string;
 }
 
 /**
@@ -30,7 +31,7 @@ export async function generateCandidates(input: GenerateCandidatesInput): Promis
   const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
   const systemPrompt = buildSystemPrompt(input.companyDescription, input.productDescription);
-  const userPrompt = buildCandidatePrompt(input.categories, input.recentHooks);
+  const userPrompt = [buildCandidatePrompt(input.categories, input.recentHooks), input.contentBrief].filter(Boolean).join("\n\n");
 
   const response = await client.chat.completions.parse({
     model: env.OPENAI_TEXT_MODEL,
@@ -44,6 +45,10 @@ export async function generateCandidates(input: GenerateCandidatesInput): Promis
   const message = response.choices[0]?.message;
   if (message?.refusal) throw new Error(`OpenAI refused candidate generation: ${message.refusal}`);
   if (!message?.parsed) throw new Error("OpenAI returned no validated candidate batch.");
+  const received = message.parsed.candidates.map((c) => c.category);
+  if (new Set(received).size !== 3 || input.categories.some((c) => !received.includes(c))) {
+    throw new Error("Generated candidates did not match the three requested categories.");
+  }
   return message.parsed;
 }
 
@@ -73,12 +78,25 @@ function buildMockCandidate(category: Category): GeneratedCandidateBatch["candid
 
   const xCopy = `${hook} Liceo helps teams see what software is really in use, so renewal and access decisions rest on evidence, not guesswork. #Liceo #SaaSGovernance`;
 
+  const facebookCopy = [
+    `${hook}`,
+    ``,
+    `Software decisions get harder when teams do not have a clear picture of the tools already in use. ${theme.description}`,
+    ``,
+    `Liceo helps IT, finance, procurement, and security teams build that shared view, making it easier to approach access, renewals, and software spend with confidence.`,
+    ``,
+    `What could your organization learn from a clearer view of its software environment?`,
+    ``,
+    `#Liceo #SaaSManagement`,
+  ].join("\n");
+
   return {
     category,
     contentAngle: theme.description,
     hook,
     headline: theme.exampleTheme.length <= 60 ? theme.exampleTheme : null,
     linkedinCopy,
+    facebookCopy,
     xCopy,
     hashtags: ["#Liceo", "#SaaSManagement", "#ITGovernance", "#SoftwareSpend"],
     imagePrompt: `Clean modern enterprise office scene representing ${theme.label.toLowerCase()}, muted professional palette, ample negative space for a headline, no on-screen text or logos.`,

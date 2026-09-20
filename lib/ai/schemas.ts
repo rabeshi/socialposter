@@ -11,6 +11,7 @@ export const candidateSchema = z.object({
   // value represents "no headline" without producing an optional JSON key.
   headline: z.string().max(80).nullable(),
   linkedinCopy: z.string().min(20),
+  facebookCopy: z.string().min(20).max(2200),
   xCopy: z.string().min(10).max(280),
   hashtags: z.array(z.string().regex(/^#\w+$/)).min(1).max(6),
   imagePrompt: z.string().min(10),
@@ -56,5 +57,18 @@ export function validateXCopy(copy: string): { valid: boolean; issues: string[] 
   if (!/#Liceo\b/i.test(copy)) issues.push("X copy must include #Liceo.");
   const hashtagCount = (copy.match(/#\w+/g) ?? []).length;
   if (hashtagCount > 3) issues.push(`X copy has ${hashtagCount} hashtags; maximum is 3.`);
+  return { valid: issues.length === 0, issues };
+}
+
+/** Validates Facebook copy using readable feed-post bounds and brand attribution. */
+export function validateFacebookCopy(copy: string): { valid: boolean; issues: string[] } {
+  const issues: string[] = [];
+  const words = copy.trim().split(/\s+/).filter(Boolean).length;
+  if (words < 40 || words > 180) {
+    issues.push(`Facebook copy is ${words} words; expected roughly 60-140 (soft bounds 40-180).`);
+  }
+  if (!/\bLiceo\b/i.test(copy)) issues.push("Facebook copy must include Liceo.");
+  const hashtagCount = (copy.match(/#\w+/g) ?? []).length;
+  if (hashtagCount > 3) issues.push(`Facebook copy has ${hashtagCount} hashtags; maximum is 3.`);
   return { valid: issues.length === 0, issues };
 }

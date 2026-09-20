@@ -89,47 +89,46 @@ export function buildCandidatePrompt(categories: Category[], recentHooks: string
       ? `\nAvoid reusing these recent hooks or opening sentences:\n${recentHooks.map((h) => `- ${h}`).join("\n")}`
       : "",
     `\nFor each candidate produce: category, contentAngle, hook, headline (use null when no separate headline is needed), linkedinCopy (80-180 words,`,
-    `3-5 hashtags including #Liceo, ends with an insight or restrained question), xCopy (approximately 180-260`,
+    `3-5 hashtags including #Liceo, ends with an insight or restrained question), facebookCopy (60-140 words, conversational, explicitly mentions Liceo, ends with a restrained question and uses no more than 3 hashtags), xCopy (approximately 180-260`,
     `characters, up to 3 hashtags including #Liceo), hashtags array, imagePrompt, altText,`,
     `suggestedPublicationTime (HH:mm), qualityScore (0-1), performanceReason,`,
     `factualityNotes, and riskNotes. Make each post structurally and rhetorically distinct: vary the opening,`,
     `paragraph rhythm, argument, practical takeaway, and closing question. Never reuse boilerplate across`,
     `candidates. Do not invent customers, partnerships, integrations, or certifications.`,
-    `For each imagePrompt, act as a senior advertising art director. Translate that specific post's central`,
-    `insight into one concrete, memorable physical metaphor that works without explanatory text. Specify the`,
-    `hero subject, supporting objects, environment, camera angle, lighting, materials, and color mood. The three`,
-    `concepts must use different hero subjects, settings, angles, and metaphors. Do not use a dashboard, laptop,`,
-    `cloud, shield, or floating app tiles as the main subject more than once across the batch. Avoid generic`,
-    `'professional graphic' and 'software dashboard with metrics' descriptions, fake text, and unrelated imagery.`,
+    `For each imagePrompt, create a clear editorial illustration in the approved Liceo style: white or`,
+    `off-white backgrounds, navy sans-serif headlines, electric-blue and teal accents, rounded surfaces,`,
+    `soft shadows, subtle depth, and generous whitespace. Use a short headline and a purposeful visual`,
+    `metaphor for the post. Vary subjects and layouts across renewals, discovery, offboarding, license`,
+    `usage, collaboration, and governance. Do not make every post about dashboards. No invented metrics`,
+    `or product interfaces, photorealistic office scenes, robots, unrelated styles, or third-party logos.`,
+    `Reserve quiet white space at bottom right for the official Liceo logo to be composited later.`,
   ].join("\n");
 }
 
 const VISUAL_DIRECTIONS = [
-  "Cinematic macro product photograph, low three-quarter angle, tactile hero object in sharp focus, minimal background.",
-  "Bright editorial tabletop still life, overhead camera, carefully arranged physical objects telling a visual story.",
-  "Premium architectural miniature or diorama, wide eye-level camera, layered depth and realistic scale-model materials.",
-  "Sophisticated split-scene comparison showing before versus after without labels, symmetrical wide composition.",
-  "Dynamic frozen-motion commercial photograph, strong diagonal movement, one surprising physical transformation.",
-  "Clean museum-display scene, centered sculptural metaphor on a pedestal, soft gallery lighting and negative space.",
-  "Realistic operations room viewed from behind and above, people secondary, physical workflow metaphor dominant.",
-  "Optimistic glass-atrium business scene, natural morning light, expansive framing and an unexpected SaaS metaphor.",
+  "A short headline above one clear conceptual illustration with generous whitespace.",
+  "A left-aligned headline balanced by a flowing illustration on the right.",
+  "Three simple illustrated steps with short labels, visually connected by a fine blue line.",
+  "A before-and-after illustration with rounded objects and restrained typography.",
+  "An airy top-down arrangement of meaningful objects with subtle depth and soft shadows.",
+  "A central focal illustration with a few carefully spaced supporting objects.",
 ] as const;
 
 export function buildImagePrompt(basePrompt: string, brandColors: string[], seed = 0): string {
-  const palette = brandColors.length ? ` Palette accents: ${brandColors.join(", ")}.` : "";
   const direction = VISUAL_DIRECTIONS[Math.abs(seed) % VISUAL_DIRECTIONS.length]!;
   return [
     basePrompt,
     `Composition direction: ${direction}`,
-    "Create a premium photorealistic 3D editorial advertising image for an enterprise SaaS company—not a flat",
-    "vector graphic, slide, poster, or ordinary screenshot. Honor the supplied post-specific metaphor as the hero;",
-    "do not replace it with a generic dashboard. App tiles, screens, charts, clouds, locks, and shields may appear",
-    "only when they support this particular concept and must not become the default composition. Use realistic",
-    "materials, natural or cinematic light, soft shadows, subtle depth of field, and crisp product-photo",
-    "detail, balanced visual hierarchy, and a sophisticated white, navy, blue, and multicolor palette. Make the",
-    "specific post insight understandable at a glance. Avoid generic corporate banners, abstract node diagrams, meaningless",
-    "charts, excessive interface panels, humanoid robots, glowing AI brains, visual clutter, garbled text, malformed",
-    "hands or faces, prominent typography, and copied company logos. Leave some clean negative space.",
-    palette,
+    "Keep the approved Liceo visual identity: white or off-white background, deep navy sans-serif",
+    "headlines, electric-blue and teal accents, rounded surfaces, soft shadows, subtle illustrative",
+    "depth, and generous whitespace. Use a concise headline tied to the post and one purposeful",
+    "conceptual illustration. Vary the subject and composition without changing the brand style.",
+    "Reference concepts include a renewal calendar and contract, app discovery through a magnifying",
+    "glass, or an employee badge connected to handover steps. Invent fresh concepts, not copies.",
+    "No fabricated dashboards, product screenshots, statistics, capabilities, third-party logos,",
+    "photorealistic office scenes, robots, or unrelated cinematic styles. Keep text legible and brief.",
+    "Do not draw or typeset the Liceo logo. Reserve the bottom-right 22% of width and 15% of height",
+    "as quiet white space for the exact official logo added afterward. Maintain safe margins.",
+    brandColors.length ? `Additional brand palette: ${brandColors.join(", ")}.` : "",
   ].join(" ");
 }

@@ -48,6 +48,10 @@ export default async function PostDetailPage({ params }: { params: Promise<{ pos
               <p className="text-xs font-semibold text-muted-foreground">X</p>
               <p className="text-sm">{candidate.xCopy}</p>
             </div>
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground">Facebook</p>
+              <p className="whitespace-pre-line text-sm">{candidate.facebookCopy}</p>
+            </div>
           </CardContent>
         </Card>
 

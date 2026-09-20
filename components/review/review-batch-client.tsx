@@ -90,7 +90,7 @@ export function ReviewBatchClient({ batch }: { batch: BatchData }) {
     );
   }
 
-  async function handleSaveEdits(fields: { linkedinCopy: string; xCopy: string; headline: string }) {
+  async function handleSaveEdits(fields: { linkedinCopy: string; facebookCopy: string; xCopy: string; headline: string }) {
     await guarded(() =>
       api(`/api/candidates/${selected!.id}`, {
         method: "PATCH",

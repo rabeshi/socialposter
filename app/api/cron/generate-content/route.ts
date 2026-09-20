@@ -4,11 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { assertCronAuthorized, UnauthorizedError } from "@/lib/security";
 import { decideWhetherToGenerate, computeNextGenerationAt } from "@/lib/scheduling/generation";
 import { generateCandidates } from "@/lib/ai/content-generator";
-import { generateImageSet } from "@/lib/ai/image-generator";
+import { generateImageSet, featuredImageSet } from "@/lib/ai/image-generator";
 import { detectSimilarity } from "@/lib/duplicate-detection/similarity";
 import { buildBatchIdempotencyKey } from "@/lib/scheduling/publishing";
 import { sendApprovalEmail } from "@/lib/email/send-approval-email";
 import { recordAudit } from "@/lib/audit";
+
+import { featuredImageWeek, weeklyFeaturedMarker, WEEKLY_FEATURED_BRIEF, WEEKLY_FEATURED_ALT } from "@/lib/scheduling/weekly-featured-image";
 
 const ALL_CATEGORIES = Object.values(Category);
 
@@ -86,21 +88,31 @@ export async function GET(request: Request) {
   }
 
   const brand = await prisma.brandProfile.findFirst();
+  const week = featuredImageWeek(new Date(), settings.generationTimezone);
+  const featuredMarker = weeklyFeaturedMarker(week);
+  const existingFeatured = brand?.featuredImageUrl ? await prisma.postCandidate.findFirst({
+    where: { imagePrompt: { startsWith: featuredMarker }, batch: { status: { not: ContentStatus.GENERATION_FAILED } } },
+    select: { id: true },
+  }) : null;
+  const featureThisWeek = Boolean(brand?.featuredImageUrl && !existingFeatured);
   const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
   const recentCandidates = await prisma.postCandidate.findMany({
-    where: { createdAt: { gte: sixtyDaysAgo }, status: { in: [ContentStatus.PUBLISHED, ContentStatus.PARTIALLY_PUBLISHED] } },
+    where: { createdAt: { gte: sixtyDaysAgo }, status: { in: [ContentStatus.PENDING_REVIEW, ContentStatus.APPROVED, ContentStatus.PUBLISHED, ContentStatus.PARTIALLY_PUBLISHED] } },
     select: { id: true, hook: true, linkedinCopy: true, category: true },
+    orderBy: { createdAt: "desc" },
     take: 100,
   });
 
   const lastBatch = await prisma.contentBatch.findFirst({
-    where: { status: { in: [ContentStatus.PUBLISHED, ContentStatus.PARTIALLY_PUBLISHED] } },
+    where: { status: { in: [ContentStatus.PENDING_REVIEW, ContentStatus.APPROVED, ContentStatus.PUBLISHED, ContentStatus.PARTIALLY_PUBLISHED] } },
     orderBy: { createdAt: "desc" },
   });
   const excludedCategories = new Set(lastBatch?.categories ?? []);
   const eligibleCategories = ALL_CATEGORIES.filter((c) => !excludedCategories.has(c));
   const pool = eligibleCategories.length >= 3 ? eligibleCategories : ALL_CATEGORIES;
-  const categories = shuffle(pool).slice(0, 3);
+  const categories = featureThisWeek
+    ? [Category.BUILDING_LICEO, ...shuffle(pool.filter((c) => c !== Category.BUILDING_LICEO)).slice(0, 2)]
+    : shuffle(pool).slice(0, 3);
 
   const batch = await prisma.contentBatch.create({
     data: {
@@ -115,6 +127,7 @@ export async function GET(request: Request) {
   try {
     const generated = await generateCandidates({
       categories,
+      contentBrief: featureThisWeek ? WEEKLY_FEATURED_BRIEF : undefined,
       recentHooks: recentCandidates.map((c) => c.hook),
       companyDescription: brand?.companyDescription ?? "Liceo is an AI-powered SaaS discovery, governance, cost-optimization, and management platform.",
       productDescription: brand?.productDescription ?? "Liceo helps organizations discover, govern, and optimize their software ecosystems.",
@@ -123,15 +136,18 @@ export async function GET(request: Request) {
     // Image generation dominates runtime. Run the three independent calls
     // concurrently so the cron stays within Vercel's execution window.
     const candidatesWithImages = await Promise.all(
-      generated.candidates.map(async (candidate, index) => ({
-        candidate,
-        images: await generateImageSet(candidate.imagePrompt, brand?.brandColors ?? [], index),
+      generated.candidates.map(async (candidate) => ({
+        candidate: featureThisWeek && candidate.category === Category.BUILDING_LICEO
+          ? { ...candidate, imagePrompt: `${featuredMarker} Use the saved featured screenshot.`, altText: WEEKLY_FEATURED_ALT }
+          : candidate,
+        images: featureThisWeek && candidate.category === Category.BUILDING_LICEO
+          ? await featuredImageSet(brand!.featuredImageUrl!, brand!.logoUrl)
+          : await generateImageSet(candidate.imagePrompt, brand?.brandColors ?? [], Math.floor(Math.random() * 10_000), brand?.logoUrl),
       }))
     );
 
-    const created = [];
-    for (const { candidate: c, images } of candidatesWithImages) {
-      const candidate = await prisma.postCandidate.create({
+    const created = await prisma.$transaction(candidatesWithImages.map(({ candidate: c, images }) =>
+      prisma.postCandidate.create({
         data: {
           batchId: batch.id,
           category: c.category,
@@ -139,6 +155,7 @@ export async function GET(request: Request) {
           hook: c.hook,
           headline: c.headline,
           linkedinCopy: c.linkedinCopy,
+            facebookCopy: c.facebookCopy,
           xCopy: c.xCopy,
           hashtags: c.hashtags,
           imagePrompt: c.imagePrompt,
@@ -154,9 +171,8 @@ export async function GET(request: Request) {
           riskNotes: c.riskNotes,
           suggestedPublicationTime: c.suggestedPublicationTime,
         },
-      });
-      created.push(candidate);
-    }
+      })
+    ));
 
     const similarity = await detectSimilarity(
       created.map((c) => ({ id: c.id, hook: c.hook, linkedinCopy: c.linkedinCopy, category: c.category })),

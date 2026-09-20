@@ -178,6 +178,7 @@ model PostCandidate {
 
   linkedinCopy   String
   xCopy          String
+  facebookCopy   String   @default("")
   hashtags       String[]      @default([])
 
   imagePrompt    String
@@ -219,6 +220,7 @@ model ContentVersion {
   version       Int
   linkedinCopy  String
   xCopy         String
+  facebookCopy  String   @default("")
   imagePrompt   String?
   imageUrls     Json?
   changeReason  String?

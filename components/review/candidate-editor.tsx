@@ -23,7 +23,7 @@ export function CandidateEditor({
   onSaveManual,
 }: {
   candidate: CandidateData;
-  onSaveEdits: (fields: { linkedinCopy: string; xCopy: string; headline: string }) => Promise<void>;
+  onSaveEdits: (fields: { linkedinCopy: string; facebookCopy: string; xCopy: string; headline: string }) => Promise<void>;
   onRegenerateImage: () => Promise<void>;
   onApprove: () => Promise<void>;
   onReturnToEditing: () => void;
@@ -33,6 +33,7 @@ export function CandidateEditor({
 }) {
   const [linkedinCopy, setLinkedinCopy] = useState(candidate.linkedinCopy);
   const [xCopy, setXCopy] = useState(candidate.xCopy);
+  const [facebookCopy, setFacebookCopy] = useState(candidate.facebookCopy);
   const [headline, setHeadline] = useState(candidate.headline ?? "");
   const [confirmed, setConfirmed] = useState(candidate.status === "APPROVED" || candidate.status === "SCHEDULED");
   const [platforms, setPlatforms] = useState<Platform[]>(["LINKEDIN", "X"]);
@@ -49,7 +50,7 @@ export function CandidateEditor({
   async function handleSave() {
     setBusy("save");
     try {
-      await onSaveEdits({ linkedinCopy, xCopy, headline });
+      await onSaveEdits({ linkedinCopy, facebookCopy, xCopy, headline });
       setSaved(true);
     } finally {
       setBusy(null);
@@ -90,6 +91,11 @@ export function CandidateEditor({
         <div className="space-y-2">
           <Label htmlFor="x">X copy ({xCopy.length}/280 characters)</Label>
           <Textarea id="x" rows={4} value={xCopy} maxLength={280} onChange={(e) => { setXCopy(e.target.value); setSaved(false); }} />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="facebook">Facebook copy ({facebookCopy.trim().split(/\s+/).filter(Boolean).length} words)</Label>
+          <Textarea id="facebook" rows={7} value={facebookCopy} maxLength={2200} onChange={(e) => { setFacebookCopy(e.target.value); setSaved(false); }} />
         </div>
 
         {!saved && (

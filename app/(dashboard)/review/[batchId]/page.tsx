@@ -24,6 +24,7 @@ export default async function ReviewBatchPage({ params }: { params: Promise<{ ba
       hook: c.hook,
       headline: c.headline,
       linkedinCopy: c.linkedinCopy,
+      facebookCopy: c.facebookCopy,
       xCopy: c.xCopy,
       hashtags: c.hashtags,
       altText: c.altText,

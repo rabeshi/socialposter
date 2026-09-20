@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       const candidatesWithImages = await Promise.all(
         generated.candidates.map(async (candidate, index) => ({
           candidate,
-          images: await generateImageSet(candidate.imagePrompt, brand?.brandColors ?? [], index),
+          images: await generateImageSet(candidate.imagePrompt, brand?.brandColors ?? [], index, brand?.logoUrl),
         }))
       );
 
@@ -88,6 +88,7 @@ export async function POST(request: Request) {
             hook: c.hook,
             headline: c.headline,
             linkedinCopy: c.linkedinCopy,
+            facebookCopy: c.facebookCopy,
             xCopy: c.xCopy,
             hashtags: c.hashtags,
             imagePrompt: c.imagePrompt,

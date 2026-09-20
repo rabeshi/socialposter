@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireRole, handleApiError, ApiError } from "@/lib/api-helpers";
 import { recordAudit, clientIp } from "@/lib/audit";
-import { validateLinkedInCopy, validateXCopy } from "@/lib/ai/schemas";
+import { validateFacebookCopy, validateLinkedInCopy, validateXCopy } from "@/lib/ai/schemas";
 import { deleteGeneratedImages } from "@/lib/storage/blob";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -23,6 +23,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
 const editSchema = z.object({
   linkedinCopy: z.string().min(1).optional(),
+  facebookCopy: z.string().min(1).max(2200).optional(),
   xCopy: z.string().min(1).max(280).optional(),
   headline: z.string().max(80).nullable().optional(),
   hashtags: z.array(z.string()).optional(),
@@ -33,7 +34,7 @@ const editSchema = z.object({
   changeReason: z.string().optional(),
 });
 
-/** Edits the LinkedIn/X copy (independently), image prompt, or schedule of a candidate, recording a new ContentVersion. */
+/** Edits platform copy independently, image prompt, or schedule, recording a new ContentVersion. */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await requireSession();
@@ -48,8 +49,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const warnings: string[] = [];
     const nextLinkedin = parsed.data.linkedinCopy ?? candidate.linkedinCopy;
     const nextX = parsed.data.xCopy ?? candidate.xCopy;
+    const nextFacebook = parsed.data.facebookCopy ?? candidate.facebookCopy;
     if (parsed.data.linkedinCopy) warnings.push(...validateLinkedInCopy(nextLinkedin).issues);
     if (parsed.data.xCopy) warnings.push(...validateXCopy(nextX).issues);
+    if (parsed.data.facebookCopy) warnings.push(...validateFacebookCopy(nextFacebook).issues);
 
     const nextVersion = (candidate.versions.at(0)?.version ?? 0) + 1;
 
@@ -58,6 +61,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         where: { id: candidate.id },
         data: {
           linkedinCopy: nextLinkedin,
+          facebookCopy: nextFacebook,
           xCopy: nextX,
           headline: parsed.data.headline ?? candidate.headline,
           hashtags: parsed.data.hashtags ?? candidate.hashtags,
@@ -75,6 +79,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           candidateId: candidate.id,
           version: nextVersion,
           linkedinCopy: nextLinkedin,
+          facebookCopy: nextFacebook,
           xCopy: nextX,
           imagePrompt: parsed.data.imagePrompt ?? candidate.imagePrompt,
           changeReason: parsed.data.changeReason ?? "Manual edit",

@@ -41,7 +41,7 @@ async function regenerateBatch(originalId: string, actorUserId: string | null) {
 
   for (let i = 0; i < generated.candidates.length; i++) {
     const c = generated.candidates[i]!;
-    const images = await generateImageSet(c.imagePrompt, brand?.brandColors ?? [], i);
+    const images = await generateImageSet(c.imagePrompt, brand?.brandColors ?? [], i, brand?.logoUrl);
     await prisma.postCandidate.create({
       data: {
         batchId: batch.id,
@@ -50,6 +50,7 @@ async function regenerateBatch(originalId: string, actorUserId: string | null) {
         hook: c.hook,
         headline: c.headline,
         linkedinCopy: c.linkedinCopy,
+            facebookCopy: c.facebookCopy,
         xCopy: c.xCopy,
         hashtags: c.hashtags,
         imagePrompt: c.imagePrompt,
